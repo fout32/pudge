@@ -17,21 +17,21 @@ Table of Contents
 
 ## Description
 
-Package pudge is a fast and simple key/value store written using Go's standard library.
+Package pudge - это быстрое и простое хранилище ключей и значений, написанное с использованием стандартной библиотеки Go.
 
-It presents the following:
-* Supporting very efficient lookup, insertions and deletions
-* Performance is comparable to hash tables
-* Ability to get the data in sorted order, which enables additional operations like range scan
-* Select with limit/offset/from key, with ordering or by prefix
-* Safe for use in goroutines
-* Space efficient
-* Very short and simple codebase
-* Well tested, used in production
+В нем представлено следующее:
+* Поддержка очень эффективного поиска, вставок и удалений
+* Производительность сравнима с хэш-таблицами
+* Возможность получать данные в отсортированном порядке, что позволяет выполнять дополнительные операции, такие как сканирование диапазона
+* Выберите с помощью limit/offset/from key, с упорядочением или по префиксу
+* Безопасен для использования в горутинах
+* Экономия пространства
+* Очень короткая и простая кодовая база
+* Хорошо протестирован, используется в production
 
 ![pudge](https://avatars3.githubusercontent.com/u/417177?s=460&v=4)
 
-## Usage
+## Использование
 
 
 ```golang
@@ -59,7 +59,7 @@ func main() {
 }
 
 
-//ExampleSelect
+//Примеры выбора
 func ExampleSelect() {
 	cfg := &pudge.Config{
 		SyncInterval: 1} // every second fsync
@@ -95,7 +95,7 @@ func ExampleSelect() {
 
 ## Cookbook
 
- - Store data of any type. Pudge uses Gob encoder/decoder internally. No limits on keys/values size.
+ - Храните данные любого типа. Pudge использует кодер / декодер Gob внутри. Никаких ограничений на размер ключей / значений.
 
 ```golang
 pudge.Set("strings", "Hello", "World")
@@ -109,14 +109,14 @@ u := &User{Id: 1, Name: "name"}
 pudge.Set("users", u.Id, u)
 
 ```
- - Pudge is stateless and safe for use in goroutines. You don't need to create/open files before use. Just write data to pudge, don't worry about state. [web server example](https://github.com/recoilme/pixel)
+ - Pudge безопасен для использования в горутинах. Вам не нужно создавать / открывать файлы перед использованием. Просто запишите данные в pudge, не беспокойтесь о состоянии. [web server example](https://github.com/recoilme/pixel)
 
- - Pudge is parallel. Readers don't block readers, but a writer - does, but by the stateless nature of pudge it's safe to use multiples files for storages.
+ - Пудж параллелен. Читатели не блокируют читателей, а писатель - блокирует, но из-за отсутствия состояния pudge безопасно использовать несколько файлов для хранения.
 
  ![Illustration from slowpoke (based on pudge)](https://camo.githubusercontent.com/a1b406485fa8cd52a98d820de706e3fd255941e9/68747470733a2f2f686162726173746f726167652e6f72672f776562742f79702f6f6b2f63332f79706f6b63333377702d70316a63657771346132323164693168752e706e67)
 
 
- - Default store system: like memcache + file storage. Pudge uses in-memory hashmap for keys, and writes values to files (no value data stored in memory). But you may use inmemory mode for values, with custom config:
+ - Система хранения по умолчанию: как memcache + файловое хранилище. Pudge использует хэш-карту в памяти для ключей и записывает значения в файлы (данные о значениях не хранятся в памяти). Но вы можете использовать режим inmemory для значений с пользовательской конфигурацией:
 ```golang
 cfg = pudge.DefaultConfig()
 cfg.StoreMode = 2
@@ -124,15 +124,15 @@ db, err := pudge.Open(dbPrefix+"/"+group, cfg)
 ...
 db.Counter(key, val)
 ```
-In that case, all data is stored in memory and will be stored on disk only on Close. 
+В этом случае все данные сохраняются в памяти и будут сохранены на диске только при закрытии. 
 
 [Example server for highload, with http api](https://github.com/recoilme/bandit-server)
 
- - You may use pudge as an engine for creating databases. 
+ - Вы можете использовать pudge в качестве движка для создания баз данных. 
  
  [Example database](https://github.com/recoilme/slowpoke)
 
- - Don't forget to close all opened databases on shutdown/kill.
+ - Не забудьте закрыть все открытые базы данных при завершении работы/ уничтожении.
 ```golang
  	// Wait for interrupt signal to gracefully shutdown the server 
 	quit := make(chan os.Signal)
@@ -145,33 +145,35 @@ In that case, all data is stored in memory and will be stored on disk only on Cl
  ```
  [example recovery function for gin framework](https://github.com/recoilme/bandit-server/blob/02e6eb9f89913bd68952ec35f6c37fc203d71fc2/bandit-server.go#L89)
 
- - Pudge has a primitive select/query engine.
+ - У Pudge есть примитивный механизм выбора / запроса.
  ```golang
- // Select 2 keys, from 7 in ascending order
+ // Выбрать 2 keys, from 7 в порядке возрастания
 	keys, _ := db.Keys(7, 2, 0, true)
 // select keys from db where key>7 order by keys asc limit 2 offset 0
  ```
 
- - Pudge will work well on SSD or spined disks. Pudge doesn't eat memory or storage or your sandwich. No hidden compaction/rebalancing/resizing and so on tasks. No LSM Tree. No MMap. It's a very simple database with less than 500 LOC. It's good for [simple social network](https://github.com/recoilme/tgram) or highload system 
+ - Pudge будет хорошо работать на SSD или жестких дисках. Пудж не ест память, или хранилище, или ваш бутерброд. Никаких скрытых задач уплотнения / перебалансировки / изменения размера и так далее. Нет дерева LSM. Нет MMap. Это очень простая база данных с менее чем 500 местоположениями. Это хорошо для [simple social network](https://github.com/recoilme/tgram) или высоконагруженных систем
 
 
 ## Disadvantages
 
- - No transaction system. All operations are isolated, but you don't may batching them with automatic rollback.
- - [Keys](https://godoc.org/github.com/recoilme/pudge#Keys) function (select/query engine) may be slow. Speed of query may vary from 10ms to 1sec per million keys. Pudge don't use BTree/Skiplist or Adaptive radix tree for store keys in ordered way on every insert. Ordering operation is "lazy" and run only if needed.
- - If you need storage or database for hundreds of millions keys - take a look at [Sniper](https://github.com/recoilme/sniper) or [b52](https://github.com/recoilme/b52). They are optimized for highload (pudge - not).
- - No fsync on every insert. Most of database fsync data by the timer too
- - Deleted data don't remove from physically (but upsert will try to reuse space). You may shrink database only with backup right now
+Недостатки
+
+ - Нет системы транзакций. Все операции изолированы, но вы не можете выполнять их пакетно с автоматическим откатом.
+ - [Keys](https://godoc.org/github.com/recoilme/pudge#Keys) функция (select/query engine) может быть медленным. Скорость запроса может варьироваться от 10 мс до 1 с на миллион ключей. Pudge не использует BTree / Skiplist или адаптивное дерево координат для хранения ключей в упорядоченном виде при каждой вставке. Операция заказа является "ленивой" и выполняется только при необходимости.
+ - Если вам нужно хранилище или база данных для сотен миллионов ключей - взгляните на [Sniper](https://github.com/recoilme/sniper) or [b52](https://github.com/recoilme/b52). Они оптимизированы для высокой нагрузки (pudge - нет).
+ - Нет fsync при каждой вставке. Большая часть данных базы данных fsync также выполняется по таймеру
+ - Удаленные данные не удаляются физически (но upsert попытается повторно использовать пространство). Прямо сейчас вы можете сжать базу данных только с помощью резервной копии
 ```golang
 pudge.BackupAll("backup")
 ```
- - Keys automatically convert to binary and ordered with binary comparator. It's simple for use, but ordering will not work correctly for negative numbers for example
- - Author of project don't work at Google or Facebook and his name not Howard Chu or Brad Fitzpatrick. But I'm open for issue or contributions.
+ - Ключи автоматически преобразуются в двоичный код и упорядочиваются с помощью двоичного компаратора. Он прост в использовании, но упорядочение не будет работать корректно, например, для отрицательных чисел
+ - Автор проекта не работает в Google или Facebook, и его имя не Говард Чу или Брэд Фитцпатрик. Но я открыт для вопросов или вкладов.
 
 
 ## Motivation
 
-Some databases very well for writing. Some of the databases very well for reading. But [pudge is well balanced for both types of operations](https://github.com/recoilme/pogreb-bench). It has small [cute api](https://godoc.org/github.com/recoilme/pudge), and don't have hidden graveyards. It's just hashmap where values written in files. And you may use one database for in-memory/persistent storage in a stateless stressfree way
+Некоторые базы данных очень хороши для написания. Некоторые базы данных очень хороши для чтения. Но [pudge хорошо сбалансирован для обоих типов операций](https://github.com/recoilme/pogreb-bench). У него есть маленький [симпатичный api](https://godoc.org/github.com/recoilme/pudge), и у них нет скрытых кладбищ. Это просто хэш-карта, где значения записаны в файлах. И вы можете использовать одну базу данных для хранения в памяти / постоянного хранения без состояния без стресса
 
 
 ## Benchmarks
